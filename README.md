@@ -2,7 +2,7 @@
 A strategy game for two players (comp vs. human) about factoring numbers<p/>
 
 Developed by Andi Keeley<br/>
-started on the evening of 6/5/2019 instead of just going to bed<br/>
+started on the evening of 6/5/2019<br/>
 based on number theory studied at Bridgewater State University<p/>
 
 The game starts with a Magic Number. The player can set a Magic Number, or have the game<br/>

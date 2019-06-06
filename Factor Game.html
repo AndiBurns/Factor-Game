@@ -28,18 +28,27 @@
             }
         }
 
+        function randInt(min,max) {
+            return Math.floor(Math.random() * (max - min + 1) ) + min;
+        }
+
         class MagicNumber extends React.Component {
             constructor(props) {
                 super(props);
-                this.state = { number: props.number,
-                               //minimum always 2. It's gotta be a factorable positive integer.
-                               //If 1 were allowed, then first player (that is, the comp) would lose. Can't have that.
-                               min: 2,
-                               //no bounds checking on "digits" implemented. It *should* be a positive integer.
-                               //1 is a valid value, resulting in a range of 2-9 inclusive for Magic Number
-                               //The more digits allowed, the larger the possible Magic Number, the more computation required, in general.
-                               max: Math.pow(10,props.digits) - 1
-                             }
+
+                //minimum always 2. It's gotta be a factorable positive integer.
+                //If 1 were allowed, then first player (that is, the comp) would lose. Can't have that.
+                var min = 2;
+                //no data validation on "digits" implemented. It *should* be a positive integer.
+                //1 is a valid value, resulting in a range of 2-9 inclusive for Magic Number
+                //The more digits allowed, the larger the possible Magic Number, the more computation required, in general.
+                var max = Math.pow(10,props.digits) - 1;
+
+                this.state = { min: min,
+                               max: max,
+                               number: ( props.number ? props.number : randInt(min,max) )
+                             };
+
                 this.onClickUpdate = this.onClickUpdate.bind(this);
                 this.registerUpdateModal = this.registerUpdateModal.bind(this);
             }
@@ -75,6 +84,8 @@
                 this.show = this.show.bind(this);
                 this.checkRules = this.checkRules.bind(this);
                 this.onChange = this.onChange.bind(this);
+                this.randomizeNumber = this.randomizeNumber.bind(this);
+                this.changeNumber = this.changeNumber.bind(this);
                 this.onConfirm = this.onConfirm.bind(this);
                 this.onCancel = this.onCancel.bind(this);
             
@@ -117,22 +128,29 @@
             }
 
             onChange(event) {
+                this.changeNumber(event.target.value);
+            }
 
+            randomizeNumber() {
+                this.changeNumber( randInt( this.state.min, this.state.max ) );
+            }
+
+            changeNumber(number) {
                 //Create a new object to merge the new number value into the current state. Shouldn't modify current state directly.
                 //Merging the current state into an object that already has its number value set to the new value would overwrite
                 //that with the old value (which is not desired).
-                const tentativeState = Object.assign( {}, this.state, { number: event.target.value } );
+                const tentativeState = Object.assign( {}, this.state, { number: number } );
 
                 //checkRules will add its relevant data to the passed tentativeState. It returns the complete new state.
                 this.setState( this.checkRules( tentativeState ) );
             }
 
             onConfirm() {
-        console.log("conf");
+                
             }
 
             onCancel() {
-        console.log("canc");
+                
             }
             
             render() {
@@ -179,7 +197,8 @@
                         <div className="modal" style={modalStyle}>
                             <div>
                                 <b>Magic Number</b><br/>
-                                <input type="number" value={this.state.number} onChange={this.onChange}/><p/>
+                                <input type="number" value={this.state.number} onChange={this.onChange}/>
+                                <button onClick={this.randomizeNumber}>Randomize</button><p/>
                                 <div style={this.state.rulePositiveIntegerStyle}>The Magic Number must be a positive integer.</div><br/>
                                 <div style={this.state.ruleMinimumStyle}>The Magic Number must be at least {this.state.min}.</div><br/>
                                 <div style={this.state.ruleMaximumStyle}>The Magic Number must be at most {this.state.max}.</div><br/>
@@ -210,7 +229,7 @@
         }
 
       ReactDOM.render(
-        <FactorGame number="1427" digits="6"/>,
+        <FactorGame digits="6"/>,
         document.getElementById('root')
       );
 
