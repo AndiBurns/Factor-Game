@@ -10,6 +10,44 @@
   <body>
     <div id="root"></div>
     <script type="text/babel">
+        //This list gets expanded dynamically, and doesn't even require this much seeding.
+        var knownPrimes = [2,3,5,7,11,13,17,19];
+
+        function ensureEnoughKnownPrimes(n) {
+            //greatest known prime
+            var gkp = knownPrimes[knownPrimes.length-1];
+            //next potential prime
+            var npp = gkp + 1;
+        
+            while (gkp * gkp < n) {
+                //the greatest known prime is less than the square root of n
+                //therefore, there may be a greater, as yet unknown, prime that does factor n
+                //keep finding primes until we've found one greater than or equal to sqrt(n)
+                
+                //set this flag indicating that npp is prime (even though we don't yet know that),
+                //and then the following loop tries to prove this false.
+                let nppIsPrime = true;
+                for (let p of knownPrimes) {
+                    if (npp % p == 0) {
+                        //this "potential" prime isn't prime. Try the next one.
+                        nppIsPrime = false;
+                        npp++;
+                        break;
+                    }
+                }
+
+                if (nppIsPrime) {
+                    //We looped through all previously known primes without finding a factor of npp.
+                    //npp is in fact prime. Add it to the list, it is now the greatest known prime,
+                    //the next potential prime is the next integer. We're ready to continue the
+                    //while loop, and with this new gkp value, potentially terminate this function.
+                    knownPrimes.push(npp);
+                    gkp = npp;
+                    npp++;
+                }
+            }
+        }
+
         class FactorGame extends React.Component {
             constructor(props) {
                 super(props);
@@ -51,6 +89,8 @@
 
                 this.onClickUpdate = this.onClickUpdate.bind(this);
                 this.registerUpdateModal = this.registerUpdateModal.bind(this);
+                this.registerPrimeFactorization = this.registerPrimeFactorization.bind(this);
+                this.onClickShowFactorization = this.onClickShowFactorization.bind(this);
             }
 
             onClickUpdate() {
@@ -61,12 +101,22 @@
                 this.setState( { updateModal: um } );
             }
 
+            registerPrimeFactorization(pf) {
+                this.setState( { primeFactorization: pf } );
+            }
+
+            onClickShowFactorization(event) {
+                this.state.primeFactorization.show(event.target.checked);
+            }
+
             render() {
                 return (
                     <label>
                     <UpdateModal number={this.state.number} parent={this} min={this.state.min} max={this.state.max}/>
                     <div align="center">Magic Number: {this.state.number}</div><br/>
-                    <button onClick={this.onClickUpdate}>Change Magic Number</button>
+                    <button onClick={this.onClickUpdate}>Change Magic Number</button><p/>
+                    <input type="checkbox" onChange={this.onClickShowFactorization}/>Show prime factorization<br/>
+                    <PrimeFactorization number={this.state.number} parent={this}/>
                     </label>
                 );
             }
@@ -95,7 +145,8 @@
                                                 numberIncoming: this.props.number,
                                                 min: this.props.min,
                                                 max: this.props.max,
-                                                show: false } );
+                                                show: false,
+                                                parent: parent } );
             }
 
             show() {
@@ -220,11 +271,63 @@
             }
         }
 
+        class PrimeFactorization extends React.Component {
+            constructor(props) {
+
+                super(props);
+
+                props.parent.registerPrimeFactorization(this);
+
+                this.show = this.show.bind(this);
+
+                var n = props.number;
+                ensureEnoughKnownPrimes(n);
+                var factorization = {};
+                for (let p of knownPrimes) {
+                    while ( n % p == 0 ) {
+                        //while p divides n (once for each time n can be divided by p),
+                        //divide p out of n, and note in the factorization object how many times
+                        //we were able to do this for p.
+                        n /= p;
+                        factorization[p] = factorization[p] ? factorization[p] + 1 : 1;
+                    }
+                }
+                if ( n !== 1 ) {
+                    //in this case, we've divided out a lot of (known) prime factors, and been left with
+                    //a non-1 n value. This must itself be a prime. If it weren't, one of the known primes
+                    //(which go up to sqrt(props.number)) would have divided it.
+                    factorization[n] = 1;
+                }
+
+                this.state = { show: false,
+                               factorization: factorization
+                             };
+            }
+
+            show(s) {
+                this.setState( { show: s } );
+            }
+
+            render() {
+                if (!this.state.show) {
+                    return null;
+                } else {
+                    let s = "";
+                    for (let f in this.state.factorization) {
+                        if (s) { s += " * "; }
+                        s += f + "^" + this.state.factorization[f];
+                    }
+
+                    return s;
+                }
+            }
+        }
+
         class FactorList extends React.Component {
             render() {
                 return (
                     "Factors"
-                )
+                );
             }
         }
 

@@ -12,4 +12,8 @@ to confirm. Gameplay proceeds in turns. First, the comp will select one of the f
 (possibly the number itself), and then all multiples of that factor (including the factor itself)<br/>
 are eliminated. Next, the player selects a factor that has not yet been eliminated, and all<br/>
 multiples of that factor are eliminated. Play proceeds back and forth like this until a player<br/>
-is forced to choose 1 (the losing move).<br/>
+is forced to choose 1 (the losing move).<p/>
+
+The algorithms used here are not necessarily optimized. This should not be understood as a high<br/>
+performance application. Checking for primeness/prime factorization and determining winning<br/>
+strategy are all done by brute force methods.<p/>
