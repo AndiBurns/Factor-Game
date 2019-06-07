@@ -16,7 +16,11 @@ Get the rest of the game working
 
 Get the code... better
  Refactor? Generally, this is a never-ending pursuit. Don't prioritize.
- More comments? Review for readability.
+  All of my React components are classes. Do I need that power for all of them? Should some just be functions?
+  There are cases where it discovers a known prime without discovering all primes up to that number (the final n value in factorization)
+   Good idea to build a list of these, so that IF they ever get checked by ensureEnoughKnownPrimes, they're already known to be prime?
+    Neat idea, honestly seems like more trouble than value. IF I get around to implementing it, run some performance tests with & without
+ More comments? Less comments? Review for readability.
  Precompile scripts so that Babel doesn't need to run every time
  Use production-ready React build
  Separate into .html and .js (and .css?) files
