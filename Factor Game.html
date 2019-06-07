@@ -279,8 +279,7 @@
                         //divide p out of n, and note in the factorization object how many times
                         //we were able to do this for p.
                         n /= p;
-                        //can just do "= factorization[p] + 1" below?
-                        factorization[p] = factorization[p] ? factorization[p] + 1 : 1;
+                        factorization[p] = ( factorization[p] ? factorization[p] : 0 ) + 1;
                     }
                 }
                 if ( n != 1 ) {
