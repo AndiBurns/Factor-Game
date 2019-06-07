@@ -52,6 +52,30 @@
             return Math.floor(Math.random() * (max - min + 1) ) + min;
         }
 
+        function generateFactorization(n) {
+
+            ensureEnoughKnownPrimes(n);
+
+            const factorization = {};
+            for (let p of knownPrimes) {
+                while ( n % p == 0 ) {
+                    //while p divides n (once for each time n can be divided by p),
+                    //divide p out of n, and note in the factorization object how many times
+                    //we were able to do this for p.
+                    n /= p;
+                    factorization[p] = ( factorization[p] ? factorization[p] : 0 ) + 1;
+                }
+            }
+            if ( n != 1 ) {
+                //in this case, we've divided out any known prime factors (up to sqrt(props.number)),
+                //and been left with a non-1 n value. This must itself be a prime. If it weren't,
+                //one of the known primes would have divided it.
+                factorization[n] = 1;
+            }
+
+            return factorization;
+        }
+
         class FactorGame extends React.Component {
             constructor(props) {
 
@@ -64,14 +88,17 @@
                 //1 is a valid value, resulting in a range of 2-9 inclusive for Magic Number
                 //The more digits allowed, the larger the possible Magic Number, the more computation required, in general.
                 const max = Math.pow(10,props.digits) - 1;
+                const number = ( props.number ? props.number : randInt(min,max) );
 
                 this.showUpdateModalCallback = this.showUpdateModalCallback.bind(this);
                 this.hideUpdateModalCallback = this.hideUpdateModalCallback.bind(this);
+                this.newGame = this.newGame.bind(this);
 
-                this.state = { number: ( props.number ? props.number : randInt(min,max) ),
+                this.state = { number: number,
                                min: min,
                                max: max,
-                               showUpdateModal: false
+                               showUpdateModal: false,
+                               factorization: generateFactorization(number)
                              };
             }
 
@@ -81,6 +108,13 @@
 
             hideUpdateModalCallback() {
                 this.setState( { showUpdateModal: false } );
+            }
+
+            newGame(n) {
+                this.setState( { number: n,
+                                 showUpdateModal: false,
+                                 factorization: generateFactorization(n)
+                               } );
             }
 
             render() {
@@ -94,13 +128,14 @@
                         <h1>Factor Game</h1>    
                         <div style={horizontalColumnContainerStyle}>
                             <div style={horizontalColumnLeftStyle}>
-                                <MagicNumber number={this.state.number} showUpdateModalCallback={this.showUpdateModalCallback}/>
+                                <MagicNumber number={this.state.number} showUpdateModalCallback={this.showUpdateModalCallback}
+                                             factorization={this.state.factorization}/>
                             </div>
                             <div style={horizontalColumnMiddleStyle}><FactorList /></div>
                             <div style={horizontalColumnRightStyle}><RulesInfo /></div>
                         </div>
                         <UpdateModal number={this.state.number} min={this.state.min} max={this.state.max} show={this.state.showUpdateModal} 
-                                     hideUpdateModalCallback={this.hideUpdateModalCallback}/>
+                                     hideUpdateModalCallback={this.hideUpdateModalCallback} newGameCallback={this.newGame}/>
                     </div>
                 );
             }
@@ -116,7 +151,7 @@
                     <label>
                         <div>Magic Number: {this.props.number}</div><br/>
                         <input type="button" onClick={this.props.showUpdateModalCallback} value="Change Magic Number"/><p/>
-                        <PrimeFactorization number={this.props.number}/>
+                        <PrimeFactorization factorization={this.props.factorization}/>
                     </label>
                 );
             }
@@ -136,8 +171,7 @@
             
                 //call checkRules without the state already set. Send it the tentative state. It will return the state
                 //as passed, with all of the relevant checkRules data added.
-                this.state = this.checkRules( { number: this.props.number,
-                                                show: false} );
+                this.state = this.checkRules( { number: this.props.number } );
             }
 
             checkRules(tentativeState) {
@@ -188,7 +222,7 @@
             }
 
             onConfirm() {
-                
+                this.props.newGameCallback(this.state.number);
             }
 
             onCancel(event) {
@@ -270,35 +304,7 @@
 
                 this.onClickShowFactorization = this.onClickShowFactorization.bind(this);
 
-                var n = props.number;
-                ensureEnoughKnownPrimes(n);
-                var factorization = {};
-                for (let p of knownPrimes) {
-                    while ( n % p == 0 ) {
-                        //while p divides n (once for each time n can be divided by p),
-                        //divide p out of n, and note in the factorization object how many times
-                        //we were able to do this for p.
-                        n /= p;
-                        factorization[p] = ( factorization[p] ? factorization[p] : 0 ) + 1;
-                    }
-                }
-                if ( n != 1 ) {
-                    //in this case, we've divided out a lot of (known) prime factors, and been left with
-                    //a non-1 n value. This must itself be a prime. If it weren't, one of the known primes
-                    //(which go up to sqrt(props.number)) would have divided it.
-                    factorization[n] = 1;
-                }
-
-                let s = "";
-                //because this is an "in" loop, the factors could theoretically appear out of order. Acceptable.
-                for (let f in factorization) {
-                    if (s) { s += " * "; }
-                    s += f + "^" + factorization[f];
-                }
-
-                this.state = { show: false,
-                               factorString: s
-                             };
+                this.state = { show: false };
             }
 
             onClickShowFactorization(event) {
@@ -306,10 +312,19 @@
             }
 
             render() {
+                let s = "";
+                if ( this.state.show ) {
+                    //because this is an "in" loop, the factors could theoretically appear out of order. Acceptable.
+                    for (let f in this.props.factorization) {
+                        if (s) { s += " * "; }
+                        s += f + "^" + this.props.factorization[f];
+                    }
+                }
+
                 return (
                     <div>
                         <input type="checkbox" onChange={this.onClickShowFactorization}/>Show prime factorization<br/>
-                        { this.state.show ? this.state.factorString : "" }
+                        { s }
                     </div>
                 );
             }
