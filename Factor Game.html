@@ -76,6 +76,32 @@
             return factorization;
         }
 
+        function generateFactorList(factorization) {
+
+            var fl = { 1: "special"};
+
+            for ( let prime in factorization ) {
+                //for each prime in the factorization, we'll generate a list of factors to add to fl.
+                let factorsToAdd = {};
+
+                for ( let exponent = 1, primeToExp = prime; exponent <= factorization[prime]; exponent++, primeToExp *= prime ) {
+                //we do this by looping through the powers of that prime, up to the highest power of that prime that appears in the factorization.
+                //for each such power of that prime, we multiply it by every factor already in fl (none of which are multiples of prime, so
+                //everything in factorsToAdd is a "new" factor i.e. not already in fl).
+                    for ( let factor in fl ) {
+                        factorsToAdd[primeToExp * factor] = "available";
+                    }
+                }
+                //AFTER we've gone through each power of prime to generate factorsToAdd, then we add all of these into fl.
+                //if we did it in the more inner loop, we'd wind up with higher powers of the prime being multiplied by lower powers of the same
+                //prime e.g. if the original number was 4, then when multiplying by 4, we'd already have 2 in there, and we'd incorrectly
+                //see 8 as a factor. We don't want that.
+                Object.assign(fl,factorsToAdd);
+            }
+        
+            return fl;
+        }
+
         class FactorGame extends React.Component {
             constructor(props) {
 
@@ -89,6 +115,7 @@
                 //The more digits allowed, the larger the possible Magic Number, the more computation required, in general.
                 const max = Math.pow(10,props.digits) - 1;
                 const number = ( props.number ? props.number : randInt(min,max) );
+                const factorization = generateFactorization(number);
 
                 this.showUpdateModalCallback = this.showUpdateModalCallback.bind(this);
                 this.hideUpdateModalCallback = this.hideUpdateModalCallback.bind(this);
@@ -98,7 +125,8 @@
                                min: min,
                                max: max,
                                showUpdateModal: false,
-                               factorization: generateFactorization(number)
+                               factorization: factorization,
+                               factorList: generateFactorList(factorization)
                              };
             }
 
@@ -131,7 +159,7 @@
                                 <MagicNumber number={this.state.number} showUpdateModalCallback={this.showUpdateModalCallback}
                                              factorization={this.state.factorization}/>
                             </div>
-                            <div style={horizontalColumnMiddleStyle}><FactorList /></div>
+                            <div style={horizontalColumnMiddleStyle}><FactorList factorList ={this.state.factorList}/></div>
                             <div style={horizontalColumnRightStyle}><RulesInfo /></div>
                         </div>
                         <UpdateModal number={this.state.number} min={this.state.min} max={this.state.max} show={this.state.showUpdateModal} 
@@ -332,9 +360,27 @@
 
         class FactorList extends React.Component {
             render() {
+
+                const baseStyle = { display: "inline-block", paddingLeft: 20 };
+                const factorColors = { special: "black", 
+                                       available: "black",
+                                       comp: "red",
+                                       player: "limegreen"
+                                     };
+
+                const factorStyles = {};
+                for ( let key in factorColors ) {
+                    factorStyles[key] = Object.assign( {color: factorColors[key] } , baseStyle );
+                }
+
+                var f = ["Factors: "];
+                for ( let factor in this.props.factorList ) {
+                    f.push( <div style={factorStyles[this.props.factorList[factor]]} key={factor}>{factor}</div> );
+                }
+
                 return (
-                    "Factors"
-                );
+                        <div>{f}</div>
+                       );
             }
         }
 
