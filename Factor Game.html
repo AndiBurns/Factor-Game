@@ -180,7 +180,7 @@
                 return (
                     <label>
                         <div>Magic Number: {this.props.number}</div><br/>
-                        <input type="button" onClick={this.props.showUpdateModalCallback} value="Change Magic Number"/><p/>
+                        <input type="button" onClick={this.props.showUpdateModalCallback} value="New Game"/><p/>
                         <PrimeFactorization factorization={this.props.factorization}/>
                     </label>
                 );
@@ -389,7 +389,13 @@
         class RulesInfo extends React.Component {
             render() {
                 return (
-                    "Factoring Rules!"
+                    <div>
+                        Factoring Rules<p/>
+                        {"The game starts with a Magic Number. All of its factors are shown in the center. Gameplay proceeds in turns. " + 
+                        "First, the computer chooses a number. That number, and any multiples of it, are then eliminated (shown in red). " +
+                        "Then, the player chooses a number. Similarly, that number and any multiples of it are eliminated (shown in green). " +
+                        "Choosing 1 eliminates all remaining numbers; this is game over, and whoever chose 1 loses."}<p/>
+                    </div>
                 );
             }
         }

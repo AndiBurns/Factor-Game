@@ -1,5 +1,5 @@
 Get the rest of the game working
- Currently, only the modal that lets the user change the Magic Number is moderately functional
+NO LONGER TRUE Currently, only the modal that lets the user change the Magic Number is moderately functional
 DONE  Get its footer buttons working
 DONE Include code to generate prime factorization of magic number. Include toggle for user to see this.
 DONE Create a list of all factors of the Magic Number in the middle of the page.
