@@ -139,9 +139,11 @@
             }
 
             newGame(n) {
+                var factorization = generateFactorization(n);
                 this.setState( { number: n,
                                  showUpdateModal: false,
-                                 factorization: generateFactorization(n)
+                                 factorization: factorization,
+                                 factorList: generateFactorList(factorization)
                                } );
             }
 

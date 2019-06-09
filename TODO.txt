@@ -1,18 +1,21 @@
 Get the rest of the game working
  Currently, only the modal that lets the user change the Magic Number is moderately functional
-  Get its footer buttons working
- Include code to generate prime factorization of magic number. Include toggle for user to see this.
- Create a list of all factors of the Magic Number in the middle of the page.
+DONE  Get its footer buttons working
+DONE Include code to generate prime factorization of magic number. Include toggle for user to see this.
+DONE Create a list of all factors of the Magic Number in the middle of the page.
   Scrollable, if necessary
   Clickable - this is how you play
-   animate slashing of eliminated numbers
-  Show slashes (red & green, for comp & human) through the numbers already eliminated
+NOT DOING   animate slashing of eliminated numbers
+   animate color change from black to red/green as numbers are chosen/eliminated
+NOT DOING  Show slashes (red & green, for comp & human) through the numbers already eliminated
+  Show eliminated numbers in red/green
   Some kind of messages when choosing 1
    Normal game over when it's a forced choice
    Warning that you can choose another number and keep playing if it's not forced yet
    Pop up the same modal again? For a new game.
  Rules panel on far right
   About button at bottom
+  Settings button - adjust animation time?
 
 Get the code... better
  Refactor? Generally, this is a never-ending pursuit. Don't prioritize.
