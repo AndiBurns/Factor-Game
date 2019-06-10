@@ -217,11 +217,11 @@
 
             render() {
                 return (
-                    <label>
+                    <div>
                         <div>Magic Number: {this.props.number}</div><br/>
                         <input type="button" onClick={this.props.showUpdateModalCallback} value="New Game"/><p/>
                         <PrimeFactorization factorization={this.props.factorization}/>
-                    </label>
+                    </div>
                 );
             }
         }
@@ -391,10 +391,10 @@
                 }
 
                 return (
-                    <div>
+                    <label>
                         <input type="checkbox" onChange={this.onClickShowFactorization}/>Show prime factorization<br/>
                         { s }
-                    </div>
+                    </label>
                 );
             }
         }
@@ -402,13 +402,13 @@
         class FactorList extends React.Component {
             render() {
 
-                const baseStyle = { display: "inline-block", paddingLeft: 20 };
+                const baseStyle = { display: "inline-block", paddingLeft: 20, paddingTop: 5 };
                 const factorColors = { special: "black", 
                                        available: "black",
                                        comp: "red",
                                        player: "limegreen"
                                      };
-
+        
                 const factorStyles = {};
                 for ( let key in factorColors ) {
                     factorStyles[key] = Object.assign( {color: factorColors[key] } , baseStyle );
