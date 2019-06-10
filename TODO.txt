@@ -14,6 +14,7 @@ NOT DOING  Show slashes (red & green, for comp & human) through the numbers alre
    Warning that you can choose another number and keep playing if it's not forced yet
    Pop up the same modal again? For a new game.
  Rules panel on far right
+DONE  Add rules text
   About button at bottom
   Settings button - adjust animation time?
 

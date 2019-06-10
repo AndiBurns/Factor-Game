@@ -102,6 +102,18 @@
             return fl;
         }
 
+        function findAvailableFactors( factorList ) {
+
+            var availableFactors = [];
+            for ( let factor in factorList ) {
+                if ( factorList[factor] == "available" ) {
+                    availableFactors.push(factor);
+                }
+            }
+
+            return availableFactors;
+        }
+
         class FactorGame extends React.Component {
             constructor(props) {
 
@@ -115,19 +127,14 @@
                 //The more digits allowed, the larger the possible Magic Number, the more computation required, in general.
                 const max = Math.pow(10,props.digits) - 1;
                 const number = ( props.number ? props.number : randInt(min,max) );
-                const factorization = generateFactorization(number);
 
                 this.showUpdateModalCallback = this.showUpdateModalCallback.bind(this);
                 this.hideUpdateModalCallback = this.hideUpdateModalCallback.bind(this);
                 this.newGame = this.newGame.bind(this);
+                this.newGameState = this.newGameState.bind(this);
+                this.chooseWinningMove = this.chooseWinningMove.bind(this);
 
-                this.state = { number: number,
-                               min: min,
-                               max: max,
-                               showUpdateModal: false,
-                               factorization: factorization,
-                               factorList: generateFactorList(factorization)
-                             };
+                this.state = Object.assign( { min: min, max: max }, this.newGameState(number) );
             }
 
             showUpdateModalCallback() {
@@ -139,12 +146,44 @@
             }
 
             newGame(n) {
-                var factorization = generateFactorization(n);
-                this.setState( { number: n,
-                                 showUpdateModal: false,
-                                 factorization: factorization,
-                                 factorList: generateFactorList(factorization)
-                               } );
+                this.setState( this.newGameState(n) );
+            }
+
+            newGameState(n) {
+                const factorization = generateFactorization(n);
+                const factorList = generateFactorList(factorization);
+
+                return { number: n,
+                         showUpdateModal: false,
+                         factorization: factorization,
+                         factorList: factorList,
+                         compMove: this.chooseWinningMove( findAvailableFactors( factorList ) ),
+                         compAnimationFrame: 0
+                       };
+            }
+
+            chooseWinningMove( availableFactors ) {
+                
+                //When there are no availableFactors, then only 1 is left, and there is no winning move.
+                //in that case, the following loop executes 0 times, and the function defaults to returning false.
+                for ( let factor of availableFactors ) {
+                    //construct a tentativeFactorList of what the availableFactors will be if factor is chosen as the move.
+                    let tentativeFactorList = [];
+                    for ( let f of availableFactors ) {
+                        if ( f % factor != 0 ) {
+                            tentativeFactorList.push( f );
+                        }
+                    }
+
+                    //If there is no winning move based on that tentativeFactorList, then factor is a winning move
+                    //because it forces the other player to lose.
+                    //This is a recursive call, and may have to go multiple calls deep before it terminates, but each
+                    //call will definitely have a smaller list of availableFactors than the previous, so it will terminate.
+                    if ( !(this.chooseWinningMove( tentativeFactorList )) ) {
+                        return factor;
+                    }
+                }
+
             }
 
             render() {
@@ -394,7 +433,7 @@
                         {"The game starts with a Magic Number. All of its factors are shown in the center. Gameplay proceeds in turns. " + 
                         "First, the computer chooses a number. That number, and any multiples of it, are then eliminated (shown in red). " +
                         "Then, the player chooses a number. Similarly, that number and any multiples of it are eliminated (shown in green). " +
-                        "Choosing 1 eliminates all remaining numbers; this is game over, and whoever chose 1 loses."}<p/>
+                        "Of course, choosing 1 eliminates all remaining numbers; this is game over, and whoever chose 1 loses."}<p/>
                     </div>
                 );
             }
