@@ -12,6 +12,7 @@
     <script type="text/babel">
         //This list gets expanded dynamically, and doesn't require this much seeding.
         var knownPrimes = [2,3,5,7,11,13,17,19];
+        const animationInterval = 100;
 
         function ensureEnoughKnownPrimes(n) {
             //greatest known prime
@@ -133,6 +134,7 @@
                 this.newGame = this.newGame.bind(this);
                 this.newGameState = this.newGameState.bind(this);
                 this.chooseWinningMove = this.chooseWinningMove.bind(this);
+                this.animate = this.animate.bind(this);
 
                 this.state = Object.assign( { min: min, max: max }, this.newGameState(number) );
             }
@@ -152,13 +154,27 @@
             newGameState(n) {
                 const factorization = generateFactorization(n);
                 const factorList = generateFactorList(factorization);
+                const compMove = this.chooseWinningMove( findAvailableFactors( factorList ) );
+                for ( let factor in factorList ) {
+                    if ( factor % compMove == 0 ) {
+                        factorList[factor] = "animating";
+                    }
+                }
 
                 return { number: n,
                          showUpdateModal: false,
                          factorization: factorization,
                          factorList: factorList,
-                         compMove: this.chooseWinningMove( findAvailableFactors( factorList ) ),
-                         compAnimationFrame: 0
+                         //At any particular time, at most one of compMove or playerMove should be non-0. This is part of
+                         //the animation data.
+                         compMove: compMove,
+                         //Animation starts at 0, and increases in increments of animationInterval up to animationTime
+                         animationFrame: 0,
+                         //note that generating the newGameState has side effects: it chooses an initial move for the comp,
+                         //and starts an animation for it.
+                         animationID: setInterval( this.animate, animationInterval ),
+                         //in milliseconds
+                         animationTime: 1000
                        };
             }
 
@@ -186,11 +202,43 @@
 
             }
 
+            animate() {
+
+                function updateAnimation( state ) {
+
+                    var updatedState = { animationFrame: state.animationFrame + animationInterval };
+
+                    if ( updatedState.animationFrame >= state.animationTime ) {
+                        //animation complete. Clean up.
+                        updatedState.animationFrame = 0;
+                        let factorList = Object.assign( {}, state.factorList );
+                        for ( let factor in factorList ) {
+                            if ( factorList[factor] == "animating" ) {
+                                factorList[factor] = ( state.compMove ? "comp" : "player" );
+                            }
+                        }
+                        updatedState.factorList = factorList;
+                        updatedState.compMove = 0;
+                        updatedState.playerMove = 0;
+                        clearInterval(state.animationID);
+                    }
+                    
+                    return updatedState;
+                }
+
+                this.setState(updateAnimation);
+            }
+
             render() {
                 const horizontalColumnContainerStyle = { position: "relative" };
                 const horizontalColumnLeftStyle = { width: "30%", position: "absolute", top: "20%", left: 0};
                 const horizontalColumnMiddleStyle = { width: "30%", position: "absolute", top: "20%", left: "35%"};
                 const horizontalColumnRightStyle = { width: "30%", position: "absolute", top: "20%", right: 0};
+                //I don't know why the commented out line doesn't work, but the 3 lines after achieve the same effect.
+                //const whoToAnimate = ( this.state.compMove ? "comp" : ( this.state.playerMove ? "player" ) );
+                var whoToAnimate;
+                if ( this.state.compMove ) { whoToAnimate = "comp"; }
+                if ( this.state.playerMove ) { whoToAnimate = "player"; }
 
                 return (
                     <div>
@@ -200,7 +248,11 @@
                                 <MagicNumber number={this.state.number} showUpdateModalCallback={this.showUpdateModalCallback}
                                              factorization={this.state.factorization}/>
                             </div>
-                            <div style={horizontalColumnMiddleStyle}><FactorList factorList ={this.state.factorList}/></div>
+                            <div style={horizontalColumnMiddleStyle}>
+                                <FactorList factorList ={this.state.factorList} 
+                                            whoToAnimate={whoToAnimate}
+                                            animationPortion={ this.state.animationFrame / this.state.animationTime }/>
+                            </div>
                             <div style={horizontalColumnRightStyle}><RulesInfo /></div>
                         </div>
                         <UpdateModal number={this.state.number} min={this.state.min} max={this.state.max} show={this.state.showUpdateModal} 
@@ -401,12 +453,19 @@
 
         class FactorList extends React.Component {
             render() {
-
+        
                 const baseStyle = { display: "inline-block", paddingLeft: 20, paddingTop: 5 };
+                const who = this.props.whoToAnimate;
+                if ( who ) {
+                    var r = Math.floor( this.props.animationPortion * ( who == "comp" ? 255 : 50 ) );
+                    var g = Math.floor( this.props.animationPortion * ( who == "comp" ? 0 : 205 ) );
+                    var b = Math.floor( this.props.animationPortion * ( who == "comp" ? 0 : 50 ) );
+                }
                 const factorColors = { special: "black", 
                                        available: "black",
                                        comp: "red",
-                                       player: "limegreen"
+                                       player: "limegreen",
+                                       animating: "rgb(" + r + "," + g + "," + b + ")"
                                      };
         
                 const factorStyles = {};
