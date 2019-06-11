@@ -4,15 +4,15 @@ DONE  Get its footer buttons working
 DONE Include code to generate prime factorization of magic number. Include toggle for user to see this.
 DONE Create a list of all factors of the Magic Number in the middle of the page.
   Scrollable, if necessary
-  Clickable - this is how you play
+DONE  Clickable - this is how you play
 NOT DOING   animate slashing of eliminated numbers
-   animate color change from black to red/green as numbers are chosen/eliminated
+DONE   animate color change from black to red/green as numbers are chosen/eliminated
 NOT DOING  Show slashes (red & green, for comp & human) through the numbers already eliminated
-  Show eliminated numbers in red/green
+DONE  Show eliminated numbers in red/green
   Some kind of messages when choosing 1
-   Normal game over when it's a forced choice
+DONE   Normal game over when it's a forced choice
    Warning that you can choose another number and keep playing if it's not forced yet
-   Pop up the same modal again? For a new game.
+NOT DOING, THEY CAN CLICK THE BUTTON THEMSELVES   Pop up the same modal again? For a new game.
  Rules panel on far right
 DONE  Add rules text
   About button at bottom
