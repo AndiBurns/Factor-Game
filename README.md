@@ -16,7 +16,8 @@ is forced to choose 1 (the losing move).<p/>
 
 The algorithms used here are not necessarily optimized. This should not be understood as a high<br/>
 performance application. Checking for primeness/prime factorization and determining winning<br/>
-strategy are all done by brute force methods.<p/>
+strategy are all done by brute force methods. For certain values of Magic Number, these calculations<br/>
+terminate fairly quickly. For other values, I found it necessary to halt execution.<p/>
 
 Tested on Chrome Version 75.0.3770.80 (Official Build) (64-bit) and Firefox 67.0.1 (64-bit),<br/>
 both running on Microsoft Windows 10 Home Version 10.0.17134 Build 17134.<br/>

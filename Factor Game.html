@@ -135,6 +135,7 @@
                 this.newGameState = this.newGameState.bind(this);
                 this.chooseWinningMove = this.chooseWinningMove.bind(this);
                 this.animate = this.animate.bind(this);
+                this.factorClickCallback = this.factorClickCallback.bind(this);
 
                 this.state = Object.assign( { min: min, max: max }, this.newGameState(number) );
             }
@@ -217,10 +218,32 @@
                                 factorList[factor] = ( state.compMove ? "comp" : "player" );
                             }
                         }
+                        
+                        if ( state.compMove ) {
+                            updatedState.compMove = 0;
+                            //end compMove animation by clearing animation
+                            clearInterval(state.animationID);
+                        } else {
+                            this.state.playerMove = 0;
+                            //end playerMove by choosing a compMove to start its animation, or game over
+                            const avail = findAvailableFactors( factorList );
+                            if ( avail.length > 0 ) {
+                                const compMove = this.chooseWinningMove( avail );
+                                updatedState.compMove = compMove;
+                                //animationFrame already reset to 0
+                                for ( let factor in factorList ) {
+                                    if ( ( factor % compMove == 0 ) && ( factorList[factor] == "available" ) ) {
+                                        factorList[factor] = "animating";
+                                    }
+                                }
+                            } else {
+                                //game over. Clear animation.
+                                clearInterval(state.animationID);
+                                alert("You chose 1. You lose.");
+                            }
+                        }
+
                         updatedState.factorList = factorList;
-                        updatedState.compMove = 0;
-                        updatedState.playerMove = 0;
-                        clearInterval(state.animationID);
                     }
                     
                     return updatedState;
@@ -229,13 +252,38 @@
                 this.setState(updateAnimation);
             }
 
+            factorClickCallback( factor ) {
+
+                //if either compMove or playerMove is non-0, there's already animation in progress. Ignore clicks until it completes.
+                if ( this.state.compMove || this.state.playerMove ) { return; }
+
+                //Ignore clicks on eliminated factors. ("animating" shouldn't come up, because of the previous check.) 
+                const factorStatus = this.state.factorList[factor];
+                if ( ( factorStatus == "comp" ) || ( factorStatus == "player" ) ) { return; }
+
+                if ( ( factorStatus == "special" ) && ( findAvailableFactors( this.state.factorList ).length > 0 ) ) {
+                    //there is at least one "available" factor, yet the player has chosen 1. Confirm before game over.
+
+                }
+
+                //player clicked an "available" factor (or 1, the "special" factor, but there were no "available" alternatives)
+                this.state.playerMove = factor;
+                this.state.animationFrame = 0;
+                this.state.animationID = setInterval( this.animate, animationInterval );
+                for ( let f in this.state.factorList ) {
+                    let fStatus = this.state.factorList[f];
+                    if ( ( f % factor == 0 ) && ( ( fStatus == "available" ) || ( fStatus == "special" ) ) ) {
+                        this.state.factorList[f] = "animating";
+                    }
+                }
+                
+            }
+
             render() {
                 const horizontalColumnContainerStyle = { position: "relative" };
                 const horizontalColumnLeftStyle = { width: "30%", position: "absolute", top: "20%", left: 0};
                 const horizontalColumnMiddleStyle = { width: "30%", position: "absolute", top: "20%", left: "35%"};
                 const horizontalColumnRightStyle = { width: "30%", position: "absolute", top: "20%", right: 0};
-                //I don't know why the commented out line doesn't work, but the 3 lines after achieve the same effect.
-                //const whoToAnimate = ( this.state.compMove ? "comp" : ( this.state.playerMove ? "player" ) );
                 var whoToAnimate;
                 if ( this.state.compMove ) { whoToAnimate = "comp"; }
                 if ( this.state.playerMove ) { whoToAnimate = "player"; }
@@ -251,7 +299,8 @@
                             <div style={horizontalColumnMiddleStyle}>
                                 <FactorList factorList ={this.state.factorList} 
                                             whoToAnimate={whoToAnimate}
-                                            animationPortion={ this.state.animationFrame / this.state.animationTime }/>
+                                            animationPortion={ this.state.animationFrame / this.state.animationTime }
+                                            clickCallback={this.factorClickCallback}/>
                             </div>
                             <div style={horizontalColumnRightStyle}><RulesInfo /></div>
                         </div>
@@ -452,6 +501,17 @@
         }
 
         class FactorList extends React.Component {
+            constructor(props) {
+
+                super(props);
+
+                this.clickFactor = this.clickFactor.bind(this);
+            }
+
+            clickFactor(factor) {
+                this.props.clickCallback( factor );
+            }
+
             render() {
         
                 const baseStyle = { display: "inline-block", paddingLeft: 20, paddingTop: 5 };
@@ -475,7 +535,8 @@
 
                 var f = ["Factors: "];
                 for ( let factor in this.props.factorList ) {
-                    f.push( <div style={factorStyles[this.props.factorList[factor]]} key={factor}>{factor}</div> );
+                    f.push( <div style={factorStyles[this.props.factorList[factor]]} key={factor}
+                                 onClick={() => this.clickFactor(factor)}>{factor}</div> );
                 }
 
                 return (
